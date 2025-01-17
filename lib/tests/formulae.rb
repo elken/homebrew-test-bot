@@ -150,6 +150,19 @@ module Homebrew
         end
 
         dependencies -= installed
+
+        if dependencies.include?("git-lfs")
+          info_header "Setting up git-lfs"
+
+          test "brew", "install", "git-lfs"
+          test "git", "-C", repository, "lfs", "install"
+          if ENV["GITHUB_ACTIONS_HOMEBREW_SELF_HOSTED"].present?
+            test "/usr/bin/sudo", "git", "-C", repository, "lfs", "install", "--system"
+          end
+
+          dependencies -= ["git-lfs"]
+        end
+
         @unchanged_dependencies = dependencies - @testing_formulae
         test "brew", "fetch", "--formulae", "--retry", *@unchanged_dependencies unless @unchanged_dependencies.empty?
 
